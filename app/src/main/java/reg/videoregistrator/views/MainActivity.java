@@ -16,10 +16,12 @@ import java.io.IOException;
 import java.util.List;
 
 import reg.videoregistrator.R;
+import reg.videoregistrator.models.Video;
+import reg.videoregistrator.presenters.IVideoPresenter;
+import reg.videoregistrator.presenters.VideoPresenter;
 import reg.videoregistrator.utils.CameraUtils;
-import reg.videoregistrator.utils.FileUtils;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SurfaceHolder.Callback {
+public class MainActivity extends AppCompatActivity implements IMainView, View.OnClickListener, SurfaceHolder.Callback {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private MediaRecorder mMediaRecorder;
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mBtnStop;
     private File mOutputFile;
     private Camera mCamera;
+    private IVideoPresenter mVideoPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnStop.setOnClickListener(this);
         mVideoHolder = mVideoView.getHolder();
         mVideoHolder.addCallback(this);
-
+        mVideoPresenter = new VideoPresenter(this);
     }
 
     @Override
@@ -49,6 +52,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onPause();
         releaseMediaRecorder();
         releaseCamera();
+        if (mVideoPresenter != null) {
+            mVideoPresenter.onPause();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mVideoPresenter != null) {
+            mVideoPresenter.onResume(this);
+        }
     }
 
     @Override
@@ -59,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startRecording();
                 break;
             case R.id.btn_stop:
+                mVideoPresenter.saveFile(mOutputFile.getPath());
                 stopRecording();
                 break;
         }
@@ -114,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private boolean prepareVideoRecorder() {
-        if(!prepareCamera()) {
+        if (!prepareCamera()) {
             Log.d(TAG, "Camera is not prepared");
             return false;
         }
@@ -125,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
-        mOutputFile = new File(this.getExternalCacheDir() + FileUtils.getVideoName());
+        mOutputFile = new File(this.getExternalCacheDir() + Video.getVideoName());
 
         if (!mOutputFile.exists()) {
             try {
@@ -161,8 +176,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void releaseCamera(){
-        if (mCamera != null){
+    private void releaseCamera() {
+        if (mCamera != null) {
             // release the camera for other applications
             mCamera.release();
             mCamera = null;
@@ -181,6 +196,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    @Override
+    public void saveVideo() {
 
     }
 }
