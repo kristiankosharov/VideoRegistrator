@@ -1,11 +1,13 @@
 package reg.videoregistrator.views;
 
+import android.content.Intent;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.Pair;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -19,9 +21,11 @@ import reg.videoregistrator.R;
 import reg.videoregistrator.models.Video;
 import reg.videoregistrator.presenters.IVideoPresenter;
 import reg.videoregistrator.presenters.VideoPresenter;
+import reg.videoregistrator.services.DeleteService;
 import reg.videoregistrator.utils.CameraUtils;
+import reg.videoregistrator.utils.PreferencesUtils;
 
-public class MainActivity extends AppCompatActivity implements IMainView, View.OnClickListener, SurfaceHolder.Callback {
+public class MainActivity extends AppCompatActivity implements IMainView, View.OnClickListener, SurfaceHolder.Callback, MediaRecorder.OnInfoListener, View.OnLongClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private MediaRecorder mMediaRecorder;
@@ -45,6 +49,29 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
         mVideoHolder = mVideoView.getHolder();
         mVideoHolder.addCallback(this);
         mVideoPresenter = new VideoPresenter(this);
+        mVideoView.setOnLongClickListener(this);
+
+
+        ((Button) findViewById(R.id.settings)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PreferencesActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        ((Button) findViewById(R.id.preview)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        if (PreferencesUtils.removeOldVideos(this)) {
+            Log.d(TAG, "Start service");
+            startService(new Intent(this, DeleteService.class));
+        }
     }
 
     @Override
@@ -136,9 +163,23 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setCamera(mCamera);
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+        if (PreferencesUtils.getAudio(this)) {
+            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            Pair<Integer, Integer> videoSize = PreferencesUtils.getResolution(this);
+            int quality = PreferencesUtils.getQuality(this);
+            mMediaRecorder.setProfile(CamcorderProfile.get(quality));
+            mMediaRecorder.setVideoSize(videoSize.first, videoSize.second);
+        } else {
+            mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            Pair<Integer, Integer> videoSize = PreferencesUtils.getResolution(this);
+            mMediaRecorder.setVideoSize(videoSize.first, videoSize.second);
+            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+        }
+
+        mMediaRecorder.setMaxDuration(PreferencesUtils.getMaxDuration(this));
+        mMediaRecorder.setMaxFileSize(PreferencesUtils.getSizeLimit(this));
+        mMediaRecorder.setOnInfoListener(this);
 
         mOutputFile = new File(this.getExternalCacheDir() + Video.getVideoName());
 
@@ -202,5 +243,27 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
     @Override
     public void saveVideo() {
 
+    }
+
+    @Override
+    public void onInfo(MediaRecorder mr, int what, int extra) {
+        if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED ||
+                what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+            stopRecording();
+            mOutputFile.delete();
+            startRecording();
+        }
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        int viewId = v.getId();
+        if (viewId == R.id.camera_view) {
+            stopRecording();
+            mVideoPresenter.saveFile(mOutputFile.getPath());
+            startRecording();
+        }
+
+        return false;
     }
 }

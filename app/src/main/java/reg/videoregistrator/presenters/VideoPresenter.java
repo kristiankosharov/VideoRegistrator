@@ -5,6 +5,7 @@ import reg.videoregistrator.views.IMainView;
 
 public class VideoPresenter implements IVideoPresenter {
 
+    private static final String TAG = VideoPresenter.class.getSimpleName();
     private IMainView mMainView;
     private Video mVideoModel;
 
@@ -16,6 +17,7 @@ public class VideoPresenter implements IVideoPresenter {
     @Override
     public void saveFile(String filePath) {
         mVideoModel.saveFile(filePath);
+        mVideoModel.uploadFile(filePath);
     }
 
     @Override

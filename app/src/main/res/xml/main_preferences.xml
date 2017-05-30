@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/pref_categorie_videos">
+
+        <ListPreference
+            android:key="@string/pref_key_duration"
+            android:summary="@string/pref_video_duration_summary"
+            android:title="@string/pref_video_duration"
+            android:entries="@array/duration_list"
+            android:entryValues="@array/duration_list_values"/>
+
+        <ListPreference
+            android:key="@string/pref_key_video_size"
+            android:summary="@string/pref_video_size_summary"
+            android:title="@string/pref_video_size_title"
+            android:entries="@array/video_size_list"
+            android:entryValues="@array/video_size_values"/>
+
+        <ListPreference
+            android:entries="@array/resolution_list"
+            android:entryValues="@array/resolution_value_list"
+            android:key="@string/pref_key_resolution_list"
+            android:summary="@string/pref_video_resolution_summary"
+            android:title="@string/pref_video_resolution" />
+
+        <ListPreference
+            android:entries="@array/quality_list"
+            android:entryValues="@array/quality_list_values"
+            android:key="@string/pref_key_quality"
+            android:summary="@string/pref_video_quality_summary"
+            android:title="@string/pref_video_quality" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_categorie_other">
+        <CheckBoxPreference
+            android:key="@string/pref_key_audio"
+            android:summary="@string/pref_audio_summary"
+            android:title="@string/pref_audio" />
+
+        <ListPreference
+            android:key="@string/pref_key_g"
+            android:summary="@string/pref_g_summary"
+            android:title="@string/pref_g"
+            android:entryValues="@array/g_list_values"
+            android:entries="@array/g_list"/>
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_old_videos"
+            android:summary="@string/pref_old_videos_summary"
+            android:title="@string/pref_old_videos" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

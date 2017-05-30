@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">VideoRegistrator</string>
+
+    <!-- **** Preferences **** -->
+    <string name="pref_categorie_videos">videos</string>
+    <string name="pref_video_duration">Video duration</string>
+    <string name="pref_video_duration_summary">1-3 minutes</string>
+    <string name="pref_video_size_summary">Max 100mb</string>
+    <string name="pref_video_size_title">Video\'s size limit</string>
+    <string name="pref_video_resolution">Video Resolution</string>
+    <string name="pref_video_quality">Video Quality</string>
+    <string name="pref_video_quality_summary">Low-High</string>
+    <string name="pref_categorie_other">Others</string>
+    <string name="pref_audio">Record audio</string>
+    <string name="pref_audio_summary">Can disable audio</string>
+    <string name="pref_g">Save video if G greater then</string>
+    <string name="pref_g_summary">2G</string>
+    <string name="pref_old_videos">Remove old videos</string>
+    <string name="pref_old_videos_summary">Expiration time is 2 weeks</string>
+    <string name="pref_video_resolution_summary">480p-2160p</string>
+    <string name="pref_key_duration">video_duration</string>
+    <string name="pref_key_video_size">video_size</string>
+    <string name="pref_key_resolution_list">resolution_list</string>
+    <string name="pref_key_quality">quality_list</string>
+    <string name="pref_key_audio">audio</string>
+    <string name="pref_key_g">pref_g</string>
+    <string name="pref_key_old_videos">old_videos</string>
+    <string name="pref_saving_video">pref_save_video</string>
+    <string name="dialog_title">Are you sure?</string>
+    <string name="dialog_message">are you sure about that?</string>
+    <string name="positive_button">Yes</string>
+    <string name="negative_button">No</string>
 </resources>

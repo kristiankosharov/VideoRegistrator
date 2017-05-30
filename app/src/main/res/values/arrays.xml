@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="quality_list">
+        <item>Quality low</item>
+        <item>Quality high</item>
+        <item>Quality medium</item>
+    </string-array>
+
+    <string-array name="quality_list_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="resolution_list">
+        <item>Resolution 480p</item>
+        <item>Resolution 720p</item>
+        <item>Resolution 1080p</item>
+        <item>Resolution 2160p</item>
+    </string-array>
+    <string-array name="resolution_value_list">
+        <item>720 x 480</item>
+        <item>1280 x 720</item>
+        <item>1920 x 1080</item>
+        <item>3840x2160</item>
+    </string-array>
+    <string-array name="duration_list">
+        <item>1 Minute</item>
+        <item>2 Minutes</item>
+        <item>3 Minutes</item>
+    </string-array>
+    <string-array name="duration_list_values">
+        <item>1m</item>
+        <item>2m</item>
+        <item>3m</item>
+    </string-array>
+    <string-array name="video_size_values">
+        <item>30mb</item>
+        <item>60mb</item>
+        <item>100mb</item>
+    </string-array>
+    <string-array name="video_size_list">
+        <item>30mb</item>
+        <item>60mb</item>
+        <item>100mb</item>
+    </string-array>
+    <string-array name="g_list_values">
+        <item>1G</item>
+        <item>2G</item>
+        <item>3G</item>
+    </string-array>
+    <string-array name="g_list">
+        <item>1G</item>
+        <item>2G</item>
+        <item>3G</item>
+    </string-array>
+</resources>
