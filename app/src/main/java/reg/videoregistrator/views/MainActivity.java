@@ -2,6 +2,10 @@ package reg.videoregistrator.views;
 
 import android.content.Intent;
 import android.hardware.Camera;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -25,7 +29,7 @@ import reg.videoregistrator.services.DeleteService;
 import reg.videoregistrator.utils.CameraUtils;
 import reg.videoregistrator.utils.PreferencesUtils;
 
-public class MainActivity extends AppCompatActivity implements IMainView, View.OnClickListener, SurfaceHolder.Callback, MediaRecorder.OnInfoListener, View.OnLongClickListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, IMainView, View.OnClickListener, SurfaceHolder.Callback, MediaRecorder.OnInfoListener, View.OnLongClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private MediaRecorder mMediaRecorder;
@@ -36,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
     private File mOutputFile;
     private Camera mCamera;
     private IVideoPresenter mVideoPresenter;
+    private float[] gravityV = new float[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +55,11 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
         mVideoHolder.addCallback(this);
         mVideoPresenter = new VideoPresenter(this);
         mVideoView.setOnLongClickListener(this);
+        mVideoHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
+        SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        Sensor mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 
         ((Button) findViewById(R.id.settings)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,9 +153,12 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
 
         parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
         mCamera.setParameters(parameters);
+        mCamera.setDisplayOrientation(90);
         try {
             mCamera.setPreviewDisplay(mVideoHolder);
+            mCamera.startPreview();
         } catch (IOException e) {
+            e.printStackTrace();
             Log.e(TAG, "Surface texture is unavailable or unsuitable" + e.getMessage());
             return false;
         }
@@ -156,13 +168,15 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
     }
 
     private boolean prepareVideoRecorder() {
-        if (!prepareCamera()) {
+        if (mCamera == null) {
+            prepareCamera();
             Log.d(TAG, "Camera is not prepared");
-            return false;
+//            return false;
         }
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setCamera(mCamera);
+//        mMediaRecorder.setPreviewDisplay(mVideoHolder.getSurface());
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         if (PreferencesUtils.getAudio(this)) {
             mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
@@ -232,12 +246,16 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
+        if (mCamera != null) {
+            mCamera.stopPreview();
+        }
+        prepareCamera();
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        releaseCamera();
+        releaseMediaRecorder();
     }
 
     @Override
@@ -265,5 +283,35 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
         }
 
         return false;
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float alpha = 0.8f;
+        //gravity is calculated here
+        gravityV[0] = alpha * gravityV[0] + (1 - alpha) * event.values[0];
+        gravityV[1] = alpha * gravityV[1] + (1 - alpha) * event.values[1];
+        gravityV[2] = alpha * gravityV[2] + (1 - alpha) * event.values[2];
+        //acceleration retrieved from the event and the gravity is removed
+        float x = 0;
+        float y = 0;
+        float z = 0;
+//        if((event.values[0] - gravityV[0]) > 3 || (event.values[0] - gravityV[0]) < -3) {
+        x = event.values[0] - gravityV[0];
+//        }
+//        if((event.values[1] - gravityV[1]) > 3 || (event.values[1] - gravityV[1]) < -3) {
+        y = event.values[1] - gravityV[1];
+//        }
+//        if((event.values[2] - gravityV[2]) > 3 || (event.values[2] - gravityV[2]) < -3) {
+        z = event.values[2] - gravityV[2];
+//        }
+
+//        Log.d(TAG, "G force: " + Math.sqrt(x * x + y * y + z * z));
+//        Log.d(TAG, "Sensor changed: x:" + x + ",y:" + y + ",z:" + z);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        Log.d(TAG, "onAccuracyChanged" + sensor.getName() + ",accuracy: " + accuracy);
     }
 }
