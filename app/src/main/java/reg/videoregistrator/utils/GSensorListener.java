@@ -29,6 +29,7 @@ public class GSensorListener implements SensorEventListener {
         float gY = y / SensorManager.GRAVITY_EARTH;
         float gZ = z / SensorManager.GRAVITY_EARTH;
 
+        // Calculate real g force
         double gForce = Math.sqrt(gX * gX + gY * gY + gZ * gZ);
         gForceValues.add(gForce);
 
@@ -42,6 +43,11 @@ public class GSensorListener implements SensorEventListener {
 
     }
 
+    /**
+     * Check if there diff above {@link #gForceLimit}
+     *
+     * @return if there is diff
+     */
     private boolean handleCrash() {
         if (gForceValues.size() < 15) {
             for (int i = gForceValues.size(); i >= 0; i--) {
@@ -56,6 +62,13 @@ public class GSensorListener implements SensorEventListener {
         return false;
     }
 
+    /**
+     * Calculate diff of forces
+     *
+     * @param position in for
+     *
+     * @return true if there is diff
+     */
     private boolean checkDiff(int position) {
         double diff = 0;
         if (position == 1) {

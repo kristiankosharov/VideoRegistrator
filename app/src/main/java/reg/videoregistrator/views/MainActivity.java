@@ -71,6 +71,11 @@ public class MainActivity extends AppCompatActivity implements IGForceListener, 
         if (PreferencesUtils.removeOldVideos(this)) {
             startService(new Intent(this, DeleteService.class));
         }
+
+        long size = 226000000;
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        Log.d(TAG, "digit groups: " + digitGroups);
+
     }
 
     @Override
@@ -173,13 +178,10 @@ public class MainActivity extends AppCompatActivity implements IGForceListener, 
     private boolean prepareVideoRecorder() {
         if (mCamera == null) {
             prepareCamera();
-            Log.d(TAG, "Camera is not prepared");
-//            return false;
         }
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setCamera(mCamera);
-//        mMediaRecorder.setPreviewDisplay(mVideoHolder.getSurface());
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         if (PreferencesUtils.getAudio(this)) {
             mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);

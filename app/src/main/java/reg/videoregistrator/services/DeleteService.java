@@ -6,7 +6,10 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -14,6 +17,8 @@ import reg.videoregistrator.models.Video;
 
 public class DeleteService extends IntentService {
     private static final String TAG = DeleteService.class.getSimpleName();
+    private static final long DIR_LIMIT = 1000000000; // 1GB in bytes
+    private File videoDir = new File(Environment.getExternalStorageDirectory().getPath() + Video.VIDEO_DIRECTORY);
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -30,34 +35,61 @@ public class DeleteService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d(TAG, "Handle intent");
-        File file = new File(Environment.getExternalStorageDirectory().getPath() + Video.VIDEO_DIRECTORY);
-        File[] childs = file.listFiles();
-        if (childs != null) {
-            for (File childFile : childs) {
-                Log.d(TAG, childFile.getName());
-                if (shouldDelete(childFile.lastModified())) {
-                    childFile.delete();
-                }
+        // Check if there are files in dir
+        if (videoDir.listFiles() == null) return;
+        File[] childs = videoDir.listFiles();
+        sortFileArray(childs);
+        deleteOldVideos(childs);
+    }
+
+    /**
+     * Check if dir's size is above 1GB
+     *
+     * @return true or false
+     */
+    private boolean reachedLimit() {
+        if (videoDir.isDirectory()) {
+            if (videoDir.length() >= DIR_LIMIT) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Delete oldest videos while dir's size is under 1GB
+     *
+     * @param files array with files
+     */
+    private void deleteOldVideos(File[] files) {
+        for (File child : files) {
+            if (reachedLimit()) {
+                child.delete();
+            } else {
+                return;
             }
         }
     }
 
-    private boolean shouldDelete(long timestamp) {
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTimeInMillis(timestamp);
-        Date fileDate = calendar.getTime();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.add(GregorianCalendar.DAY_OF_YEAR, -14);
-        Date beforeWeeks = calendar.getTime();
-
-        Log.d(TAG, fileDate.toString());
-        Log.d(TAG, beforeWeeks.toString());
-
-        if (fileDate.before(beforeWeeks)) {
-            return true;
-        }
-
-        return false;
+    /**
+     * Method for sorting files by last modified time.
+     *
+     * @param array with files
+     */
+    private void sortFileArray(File[] array) {
+        Arrays.sort(array, new Comparator<File>() {
+            @Override
+            public int compare(File lhs, File rhs) {
+                long result = lhs.lastModified() - rhs.lastModified();
+                if (result < 0) {
+                    return 1;
+                } else if (result > 0) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        });
     }
 }

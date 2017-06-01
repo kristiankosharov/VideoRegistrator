@@ -16,7 +16,7 @@
     <string name="pref_g">Save video if G greater then</string>
     <string name="pref_g_summary">2G</string>
     <string name="pref_old_videos">Remove old videos</string>
-    <string name="pref_old_videos_summary">Expiration time is 2 weeks</string>
+    <string name="pref_old_videos_summary">Maximum size of directory is 1GB</string>
     <string name="pref_video_resolution_summary">480p-2160p</string>
     <string name="pref_key_duration">video_duration</string>
     <string name="pref_key_video_size">video_size</string>

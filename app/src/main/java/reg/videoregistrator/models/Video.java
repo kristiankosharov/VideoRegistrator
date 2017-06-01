@@ -32,13 +32,18 @@ public class Video {
         }
     }
 
+    /**
+     * Upload video to server
+     *
+     * @param context  help for request body
+     * @param filePath path ot file which will upload
+     * @return {@link Observable<ResponseBody>}
+     */
     public Observable<ResponseBody> uploadFile(Context context, String filePath) {
         // create upload service client
         VideoUploadService service =
                 ServiceGenerator.createService(VideoUploadService.class);
 
-        // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
-        // use the FileUtils to get the actual file by uri
         File file = new File(filePath);
 
         // create RequestBody instance from file
@@ -62,6 +67,11 @@ public class Video {
         return call;
     }
 
+    /**
+     * Get right video name in data format
+     *
+     * @return patch of video file
+     */
     public static String getVideoName() {
         Calendar cal = Calendar.getInstance(Locale.getDefault());
         cal.setTimeInMillis(System.currentTimeMillis());
@@ -70,6 +80,12 @@ public class Video {
         return VIDEO_NAME + date + VIDEO_EXTENSION;
     }
 
+    /**
+     * Check if video's dir exist. If it don't exist,
+     * created it.
+     *
+     * @return true if exist or result from creation
+     */
     private boolean isExistDir() {
         File videosDir = new File(getVideoDirectory());
         if (!videosDir.exists()) {
@@ -79,6 +95,11 @@ public class Video {
         return true;
     }
 
+    /**
+     * Get path of video's dir
+     *
+     * @return path of dir
+     */
     private String getVideoDirectory() {
         return Environment.getExternalStorageDirectory() + VIDEO_DIRECTORY;
     }
