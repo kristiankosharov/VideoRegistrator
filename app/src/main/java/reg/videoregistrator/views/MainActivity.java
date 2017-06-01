@@ -27,9 +27,11 @@ import reg.videoregistrator.presenters.IVideoPresenter;
 import reg.videoregistrator.presenters.VideoPresenter;
 import reg.videoregistrator.services.DeleteService;
 import reg.videoregistrator.utils.CameraUtils;
+import reg.videoregistrator.utils.GSensorListener;
+import reg.videoregistrator.utils.IGForceListener;
 import reg.videoregistrator.utils.PreferencesUtils;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener, IMainView, View.OnClickListener, SurfaceHolder.Callback, MediaRecorder.OnInfoListener, View.OnLongClickListener {
+public class MainActivity extends AppCompatActivity implements IGForceListener, IMainView, View.OnClickListener, SurfaceHolder.Callback, MediaRecorder.OnInfoListener, View.OnLongClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private MediaRecorder mMediaRecorder;
@@ -40,7 +42,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private File mOutputFile;
     private Camera mCamera;
     private IVideoPresenter mVideoPresenter;
-    private float[] gravityV = new float[3];
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private GSensorListener mGListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,31 +60,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mVideoPresenter = new VideoPresenter(this);
         mVideoView.setOnLongClickListener(this);
         mVideoHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 
-        SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        Sensor mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-
-        ((Button) findViewById(R.id.settings)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, PreferencesActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        ((Button) findViewById(R.id.preview)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
-                startActivity(intent);
-            }
-        });
+        ((Button) findViewById(R.id.settings)).setOnClickListener(this);
+        ((Button) findViewById(R.id.preview)).setOnClickListener(this);
 
         if (PreferencesUtils.removeOldVideos(this)) {
-            Log.d(TAG, "Start service");
             startService(new Intent(this, DeleteService.class));
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mVideoPresenter != null) {
+            mVideoPresenter.onResume(this);
+        }
+        mGListener = new GSensorListener(this, this);
+        mSensorManager.registerListener(mGListener, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -91,14 +89,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mVideoPresenter != null) {
             mVideoPresenter.onPause();
         }
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mVideoPresenter != null) {
-            mVideoPresenter.onResume(this);
-        }
+        mSensorManager.unregisterListener(mGListener, mAccelerometer);
+        mGListener = null;
     }
 
     @Override
@@ -111,6 +104,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case R.id.btn_stop:
                 mVideoPresenter.saveFile(mOutputFile.getPath());
                 stopRecording();
+                break;
+            case R.id.settings:
+                Intent preferenceIntent = new Intent(MainActivity.this, PreferencesActivity.class);
+                startActivity(preferenceIntent);
+                break;
+            case R.id.preview:
+                Intent previewIntent = new Intent(MainActivity.this, PreviewActivity.class);
+                startActivity(previewIntent);
                 break;
         }
     }
@@ -277,41 +278,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public boolean onLongClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.camera_view) {
-            stopRecording();
-            mVideoPresenter.saveFile(mOutputFile.getPath());
-            startRecording();
+            savingVideo();
         }
 
         return false;
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event) {
-        float alpha = 0.8f;
-        //gravity is calculated here
-        gravityV[0] = alpha * gravityV[0] + (1 - alpha) * event.values[0];
-        gravityV[1] = alpha * gravityV[1] + (1 - alpha) * event.values[1];
-        gravityV[2] = alpha * gravityV[2] + (1 - alpha) * event.values[2];
-        //acceleration retrieved from the event and the gravity is removed
-        float x = 0;
-        float y = 0;
-        float z = 0;
-//        if((event.values[0] - gravityV[0]) > 3 || (event.values[0] - gravityV[0]) < -3) {
-        x = event.values[0] - gravityV[0];
-//        }
-//        if((event.values[1] - gravityV[1]) > 3 || (event.values[1] - gravityV[1]) < -3) {
-        y = event.values[1] - gravityV[1];
-//        }
-//        if((event.values[2] - gravityV[2]) > 3 || (event.values[2] - gravityV[2]) < -3) {
-        z = event.values[2] - gravityV[2];
-//        }
-
-//        Log.d(TAG, "G force: " + Math.sqrt(x * x + y * y + z * z));
-//        Log.d(TAG, "Sensor changed: x:" + x + ",y:" + y + ",z:" + z);
+    public void handleCrash() {
+        savingVideo();
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        Log.d(TAG, "onAccuracyChanged" + sensor.getName() + ",accuracy: " + accuracy);
+    private void savingVideo() {
+        stopRecording();
+        mVideoPresenter.saveFile(mOutputFile.getPath());
+        startRecording();
     }
 }
