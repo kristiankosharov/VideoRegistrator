@@ -1,5 +1,7 @@
 package reg.videoregistrator.presenters;
 
+import android.content.Context;
+
 import reg.videoregistrator.models.Video;
 import reg.videoregistrator.views.IMainView;
 
@@ -17,7 +19,7 @@ public class VideoPresenter implements IVideoPresenter {
     @Override
     public void saveFile(String filePath) {
         mVideoModel.saveFile(filePath);
-        mVideoModel.uploadFile(filePath);
+        mVideoModel.uploadFile((Context) mMainView, filePath);
     }
 
     @Override
