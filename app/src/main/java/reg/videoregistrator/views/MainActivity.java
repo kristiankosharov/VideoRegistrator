@@ -29,6 +29,7 @@ import reg.videoregistrator.services.DeleteService;
 import reg.videoregistrator.utils.CameraUtils;
 import reg.videoregistrator.utils.GSensorListener;
 import reg.videoregistrator.utils.IGForceListener;
+import reg.videoregistrator.utils.PermissionsUtils;
 import reg.videoregistrator.utils.PreferencesUtils;
 
 public class MainActivity extends AppCompatActivity implements IGForceListener, IMainView, View.OnClickListener, SurfaceHolder.Callback, MediaRecorder.OnInfoListener, View.OnLongClickListener {
@@ -66,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements IGForceListener, 
         ((Button) findViewById(R.id.settings)).setOnClickListener(this);
         ((Button) findViewById(R.id.preview)).setOnClickListener(this);
 
+        PermissionsUtils.checkPermissionsIfNeeded(this);
         if (PreferencesUtils.removeOldVideos(this)) {
             startService(new Intent(this, DeleteService.class));
         }
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements IGForceListener, 
 
     private boolean prepareCamera() {
         mCamera = CameraUtils.getDefaultCameraInstance();
-
+        if (mCamera == null) return false;
         Camera.Parameters parameters = mCamera.getParameters();
         List<Camera.Size> mSupportedPreviewSizes = parameters.getSupportedPreviewSizes();
         List<Camera.Size> mSupportedVideoSizes = parameters.getSupportedVideoSizes();
