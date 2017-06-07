@@ -49,12 +49,12 @@ public class GSensorListener implements SensorEventListener {
      * @return if there is diff
      */
     private boolean handleCrash() {
-        if (gForceValues.size() < 15) {
-            for (int i = gForceValues.size(); i >= 0; i--) {
+        if (gForceValues.size() <= 15 && gForceValues.size() > 1) {
+            for (int i = gForceValues.size() - 1; i >= 0; i--) {
                 if (checkDiff(i)) return true;
             }
         } else if (gForceValues.size() > 15) {
-            for (int i = gForceValues.size(); i >= gForceValues.size() - 15; i--) {
+            for (int i = gForceValues.size() - 1; i >= gForceValues.size() - 15; i--) {
                 if (checkDiff(i)) return true;
             }
         }

@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements IGForceListener, 
                 startRecording();
                 break;
             case R.id.btn_stop:
-                mVideoPresenter.saveFile(mOutputFile.getPath());
                 stopRecording();
                 break;
             case R.id.settings:
