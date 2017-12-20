@@ -6,7 +6,11 @@ import android.text.format.DateFormat;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URLConnection;
 import java.util.Calendar;
 import java.util.Locale;
@@ -14,11 +18,11 @@ import java.util.Locale;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import rx.Observable;
-import rx.functions.Func1;
 import okhttp3.ResponseBody;
 import reg.videoregistrator.utils.ServiceGenerator;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class Video {
@@ -36,9 +40,19 @@ public class Video {
     }
 
     public Observable<String> saveFile(String filePath) {
+
+//        File oldFile = new File(filePath);
         if (isExistDir()) {
             File oldFile = new File(filePath);
             File video = new File(getVideoDirectory(), getVideoName());
+            if (!video.exists()) {
+                try {
+                    video.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
             boolean isRename = oldFile.renameTo(video);
             Log.d(TAG, "IS RENAME FILE: " + isRename);
             if (isRename) {
@@ -116,7 +130,7 @@ public class Video {
     private boolean isExistDir() {
         File videosDir = new File(getVideoDirectory());
         if (!videosDir.exists()) {
-            return videosDir.mkdir();
+            return videosDir.mkdirs();
         }
 
         return true;
@@ -129,5 +143,18 @@ public class Video {
      */
     private String getVideoDirectory() {
         return Environment.getExternalStorageDirectory() + VIDEO_DIRECTORY;
+    }
+
+    public static void copy(File src, File dst) throws IOException {
+        try (InputStream in = new FileInputStream(src)) {
+            try (OutputStream out = new FileOutputStream(dst)) {
+                // Transfer bytes from in to out
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+            }
+        }
     }
 }

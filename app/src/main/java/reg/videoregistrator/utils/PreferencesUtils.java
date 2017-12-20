@@ -56,7 +56,7 @@ public class PreferencesUtils {
     public static Pair<Integer, Integer> getResolution(Context context) {
         String prefKey = context.getString(R.string.pref_key_resolution_list);
         String size = getPreferences(context).getString(prefKey, "");
-        Pair<Integer, Integer> result = new Pair<>(720, 480);
+        Pair<Integer, Integer> result = new Pair<>(320, 180);
         if (TextUtils.isEmpty(size)) {
             return result;
         } else {
